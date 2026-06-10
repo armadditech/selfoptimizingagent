@@ -1,0 +1,32 @@
+{
+  "name": "self-optimizing-agent",
+  "version": "1.0.0",
+  "description": "Self-optimizing customer service agent with multi-capability support",
+  "main": "src/agent.py",
+  "scripts": {
+    "start": "python src/agent.py",
+    "optimize": "python src/agent.py --optimize",
+    "analytics": "python src/optimization/analytics_dashboard.py",
+    "test": "pytest tests/",
+    "test:coverage": "pytest --cov=src tests/",
+    "lint": "flake8 src/ tests/",
+    "format": "black src/ tests/",
+    "type-check": "mypy src/",
+    "serve": "python src/api_server.py",
+    "install": "pip install -r requirements.txt"
+  },
+  "keywords": [
+    "customer-service",
+    "ai-agent",
+    "claude",
+    "self-optimization",
+    "chatbot",
+    "customer-support"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/self-optimizing-agent"
+  }
+}

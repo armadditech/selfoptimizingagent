@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Optimizing Agent - Full Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .section-header {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-area {
+            height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user { text-align: right; }
+
+        .message-bubble {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.agent .message-bubble {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-meta {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .intent-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 5px;
+        }
+
+        .intent-orders { background: #4CAF50; color: white; }
+        .intent-returns { background: #FF9800; color: white; }
+        .intent-products { background: #2196F3; color: white; }
+        .intent-refunds { background: #9C27B0; color: white; }
+        .intent-general { background: #607D8B; color: white; }
+        .intent-escalation { background: #F44336; color: white; }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover { transform: scale(1.05); }
+        .btn:active { transform: scale(0.95); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-info {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .optimization-card {
+            background: #f0f8ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .optimization-card h4 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+
+        .improvement {
+            background: #e8f5e9;
+            padding: 10px;
+            border-left: 4px solid #4CAF50;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .issue {
+            background: #fff3e0;
+            padding: 10px;
+            border-left: 4px solid #FF9800;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+            transition: width 0.5s;
+        }
+
+        .simulation-log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .log-entry.success { border-color: #4CAF50; background: #e8f5e9; }
+        .log-entry.warning { border-color: #FF9800; background: #fff3e0; }
+        .log-entry.error { border-color: #F44336; background: #ffebee; }
+
+        /* Smooth animations for counters */
+        #simCount, #simOptCount {
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        #autoSimStatus {
+            transition: all 0.3s ease;
+        }
+
+        /* Pulse animation for active status */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        #simStatus {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Live conversation feed styles */
+        .conversation-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #2196f3;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: slideInLeft 0.3s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .conversation-item.new {
+            animation: slideInLeft 0.3s ease-out, highlight 1s ease-out;
+        }
+
+        @keyframes highlight {
+            0% { background: #fff9c4; }
+            100% { background: white; }
+        }
+
+        .conversation-message {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .conversation-response {
+            font-size: 12px;
+            color: #666;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            margin-bottom: 6px;
+        }
+
+        .conversation-meta {
+            font-size: 10px;
+            color: #999;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Chat Section -->
+        <div class="section">
+            <div class="section-header">
+                💬 Interactive Chat
+            </div>
+            <div class="chat-area" id="chatMessages">
+                <div class="message agent">
+                    <div class="message-bubble">
+                        Hi! I'm your self-optimizing AI assistant. Try chatting with me or use the simulator to see me learn!
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="section">
+            <div class="section-header">
+                📊 Live Analytics
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalInteractions">0</div>
+                    <div class="stat-label">Interactions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="satisfaction">4.6</div>
+                    <div class="stat-label">Satisfaction</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="resolution">85%</div>
+                    <div class="stat-label">Resolution Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="escalation">8%</div>
+                    <div class="stat-label">Escalation</div>
+                </div>
+            </div>
+            <div id="intentChart"></div>
+        </div>
+
+        <!-- Simulation Section -->
+        <div class="section">
+            <div class="section-header">
+                🎭 Customer Simulator
+            </div>
+            <button class="btn btn-success btn-block" onclick="simulateCustomers(10)">
+                Simulate 10 Customers
+            </button>
+            <button class="btn btn-info btn-block" onclick="simulateCustomers(50)">
+                Simulate 50 Customers
+            </button>
+            <button class="btn btn-warning btn-block" onclick="simulateCustomers(100)">
+                Simulate 100 Customers
+            </button>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
+                <div class="section-header" style="font-size: 16px; margin-bottom: 10px;">
+                    🚀 Live Auto-Simulation
+                </div>
+                <button id="autoSimBtn" class="btn btn-primary btn-block" onclick="toggleAutoSimulation()">
+                    ▶️ Start Auto-Simulation
+                </button>
+                <div id="autoSimStatus" style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-radius: 8px; font-size: 12px; display: none; border: 2px solid #7e57c2;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span><strong>Status:</strong> <span id="simStatus" style="font-weight: bold; color: #4caf50;">Inactive</span></span>
+                        <span id="simTimer" style="font-size: 10px; opacity: 0.7;">00:00</span>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>Interactions:</strong>
+                        <span id="simCount" style="font-size: 16px; font-weight: bold; color: #2196f3;">0</span>
+                        <span id="simRate" style="font-size: 10px; opacity: 0.7; margin-left: 10px;">(0/sec)</span>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>Optimizations:</strong>
+                        <span id="simOptCount" style="font-size: 16px; font-weight: bold; color: #9c27b0;">0</span>
+                    </div>
+                    <div id="nextOptTimer" style="margin-top: 8px; padding: 5px; background: white; border-radius: 5px; font-size: 11px; text-align: center;">
+                        Next optimization in: <span id="nextOptTime" style="font-weight: bold; color: #ff9800;">--</span>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 10px; opacity: 0.7; text-align: center;">
+                        🚀 Generating 5 interactions/sec • ⚡ Optimizing every 10 sec
+                    </div>
+                </div>
+            </div>
+
+            <div class="simulation-log" id="simulationLog">
+                <div class="log-entry">Ready to simulate customer interactions...</div>
+            </div>
+
+            <!-- Live Conversation Feed -->
+            <div id="liveConversationFeed" style="display: none; margin-top: 20px;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #333; font-size: 14px;">
+                    💬 Live Conversation Feed
+                </div>
+                <div id="conversationFeedContent" style="max-height: 300px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px;">
+                    <!-- Conversations will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimization Section -->
+        <div class="section">
+            <div class="section-header">
+                ⚡ Self-Optimization
+            </div>
+            <button class="btn btn-primary btn-block" onclick="runOptimization()">
+                Run Optimization Cycle
+            </button>
+            <div id="optimizationResults"></div>
+        </div>
+
+        <!-- Full Width Optimization History -->
+        <div class="section full-width">
+            <div class="section-header">
+                📈 Optimization History & Learning Progress
+            </div>
+            <div id="optimizationHistory"></div>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage('user', message);
+            input.value = '';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message})
+                });
+                const data = await response.json();
+                addMessage('agent', data.response, data);
+                updateAnalytics();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function addMessage(type, text, meta = null) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+
+            let metaHtml = '';
+            if (meta) {
+                metaHtml = `<div class="message-meta">
+                    <span class="intent-badge intent-${meta.intent}">${meta.intent}</span>
+                    ${Math.round(meta.confidence * 100)}% confidence
+                </div>`;
+            }
+
+            div.innerHTML = `<div class="message-bubble">${text}</div>${metaHtml}`;
+            document.getElementById('chatMessages').appendChild(div);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        async function updateAnalytics() {
+            try {
+                const response = await fetch('/api/analytics');
+                const data = await response.json();
+
+                document.getElementById('totalInteractions').textContent = data.total_interactions;
+                document.getElementById('satisfaction').textContent = data.satisfaction.toFixed(1);
+                document.getElementById('resolution').textContent = Math.round(data.resolution_rate * 100) + '%';
+                document.getElementById('escalation').textContent = Math.round(data.escalation_rate * 100) + '%';
+
+                // Update intent chart
+                const total = Object.values(data.by_intent).reduce((a, b) => a + b, 0);
+                const colors = {
+                    orders: '#4CAF50', returns: '#FF9800', products: '#2196F3',
+                    refunds: '#9C27B0', general: '#607D8B'
+                };
+
+                let chartHtml = '<div style="margin-top: 15px;">';
+                for (const [intent, count] of Object.entries(data.by_intent)) {
+                    const percent = total > 0 ? (count / total * 100) : 0;
+                    chartHtml += `
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px;">
+                                <span>${intent}</span>
+                                <span>${count}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${percent}%; background: ${colors[intent]}"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                chartHtml += '</div>';
+                document.getElementById('intentChart').innerHTML = chartHtml;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function simulateCustomers(count) {
+            const log = document.getElementById('simulationLog');
+            log.innerHTML = '<div class="log-entry">🔄 Simulating ' + count + ' customer interactions...</div>';
+
+            try {
+                const response = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({count})
+                });
+                const data = await response.json();
+
+                let logHtml = `<div class="log-entry success">✅ Simulated ${count} customers</div>`;
+
+                data.results.forEach((r, i) => {
+                    const cssClass = r.resolved ? 'success' : 'warning';
+                    logHtml += `<div class="log-entry ${cssClass}">
+                        ${i + 1}. "${r.message}" → ${r.intent} → Rating: ${r.rating}/5 ${r.resolved ? '✓' : '✗'}
+                    </div>`;
+                });
+
+                log.innerHTML = logHtml;
+                updateAnalytics();
+            } catch (error) {
+                log.innerHTML = '<div class="log-entry error">❌ Simulation failed</div>';
+            }
+        }
+
+        async function runOptimization() {
+            const results = document.getElementById('optimizationResults');
+            results.innerHTML = '<div style="text-align: center; padding: 20px;">🔄 Running optimization...</div>';
+
+            try {
+                const response = await fetch('/api/optimize', {method: 'POST'});
+                const data = await response.json();
+
+                if (data.status === 'insufficient_data') {
+                    results.innerHTML = '<div class="issue">⚠️ Need more interactions. Run simulation first!</div>';
+                    return;
+                }
+
+                let html = `<div class="optimization-card">
+                    <h4>🎯 Version ${data.version} Deployed</h4>`;
+
+                if (data.issues_found && data.issues_found.length > 0) {
+                    html += '<div style="margin-bottom: 10px;"><strong>Issues Found:</strong></div>';
+                    data.issues_found.forEach(issue => {
+                        html += `<div class="issue">⚠️ ${issue}</div>`;
+                    });
+                }
+
+                if (data.improvements && data.improvements.length > 0) {
+                    html += '<div style="margin-bottom: 10px; margin-top: 15px;"><strong>Improvements Applied:</strong></div>';
+                    data.improvements.forEach(imp => {
+                        html += `<div class="improvement">✨ ${imp}</div>`;
+                    });
+                }
+
+                html += `
+                    <div style="margin-top: 15px;">
+                        <strong>A/B Test Results:</strong><br>
+                        Variant B won with ${(data.ab_test.improvement * 100).toFixed(1)}% improvement
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <strong>Performance Improvement:</strong><br>
+                        Satisfaction: ${data.before.satisfaction.toFixed(1)} → ${data.after.satisfaction.toFixed(1)}
+                        (+${((data.after.satisfaction - data.before.satisfaction) * 100).toFixed(0)}%)<br>
+                        Resolution: ${(data.before.resolution * 100).toFixed(0)}% → ${(data.after.resolution * 100).toFixed(0)}%
+                    </div>
+                </div>`;
+
+                results.innerHTML = html;
+                updateAnalytics();
+                loadOptimizationHistory();
+            } catch (error) {
+                results.innerHTML = '<div class="issue">❌ Optimization failed</div>';
+            }
+        }
+
+        async function loadOptimizationHistory() {
+            try {
+                const response = await fetch('/api/optimization-history');
+                const history = await response.json();
+
+                if (history.length === 0) return;
+
+                let html = '';
+                history.forEach((opt, idx) => {
+                    html += `<div class="optimization-card">
+                        <h4>Version ${opt.version} - ${new Date(opt.timestamp).toLocaleString()}</h4>
+                        <p><strong>Improvements:</strong> ${opt.improvements.length} changes applied</p>
+                        <p><strong>A/B Test:</strong> Winner: ${opt.ab_test.winner} (+${(opt.ab_test.improvement * 100).toFixed(1)}%)</p>
+                        <p><strong>Results:</strong> Satisfaction ${opt.after.satisfaction.toFixed(1)} | Resolution ${(opt.after.resolution * 100).toFixed(0)}%</p>
+                    </div>`;
+                });
+
+                document.getElementById('optimizationHistory').innerHTML = html;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Helper function to add log entries
+        function addLogEntry(message) {
+            const log = document.getElementById('simulationLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = message;
+            log.insertBefore(entry, log.firstChild);
+
+            // Keep only last 10 entries
+            while (log.children.length > 10) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Auto-simulation functions
+        let autoSimActive = false;
+        let autoSimInterval = null;
+        let autoSimStartTime = null;
+        let lastOptimizationTime = null;
+        let lastInteractionCount = 0;
+
+        async function toggleAutoSimulation() {
+            const btn = document.getElementById('autoSimBtn');
+            const statusDiv = document.getElementById('autoSimStatus');
+
+            if (!autoSimActive) {
+                // Start auto-simulation
+                try {
+                    const response = await fetch('/api/auto-simulation/start', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({interval: 1, batch_size: 5})
+                    });
+                    const data = await response.json();
+
+                    if (data.status === 'started' || data.status === 'already_running') {
+                        autoSimActive = true;
+                        autoSimStartTime = Date.now();
+                        lastOptimizationTime = Date.now();
+                        btn.textContent = '⏸️ Stop Auto-Simulation';
+                        btn.className = 'btn btn-warning btn-block';
+                        statusDiv.style.display = 'block';
+                        document.getElementById('simStatus').textContent = '🟢 Active';
+                        document.getElementById('simStatus').style.color = '#4caf50';
+
+                        // Show live conversation feed
+                        document.getElementById('liveConversationFeed').style.display = 'block';
+
+                        addLogEntry('🚀 Auto-simulation started! Generating 5 interactions/second...');
+
+                        // Start fast polling for real-time updates (every 500ms)
+                        autoSimInterval = setInterval(updateAutoSimStatus, 500);
+                    }
+                } catch (error) {
+                    console.error('Failed to start auto-simulation:', error);
+                }
+            } else {
+                // Stop auto-simulation
+                try {
+                    const response = await fetch('/api/auto-simulation/stop', {method: 'POST'});
+                    const data = await response.json();
+
+                    autoSimActive = false;
+                    btn.textContent = '▶️ Start Auto-Simulation';
+                    btn.className = 'btn btn-primary btn-block';
+                    document.getElementById('simStatus').textContent = '🔴 Stopped';
+
+                    // Hide live conversation feed
+                    document.getElementById('liveConversationFeed').style.display = 'none';
+
+                    addLogEntry(`🛑 Auto-simulation stopped. Total: ${data.stats.total_simulated} interactions, ${data.stats.total_optimizations} optimizations`);
+
+                    // Stop polling
+                    if (autoSimInterval) {
+                        clearInterval(autoSimInterval);
+                        autoSimInterval = null;
+                    }
+                } catch (error) {
+                    console.error('Failed to stop auto-simulation:', error);
+                }
+            }
+        }
+
+        // Helper function to get intent color
+        function getIntentColor(intent) {
+            const colors = {
+                'orders': '#4CAF50',
+                'returns': '#FF9800',
+                'products': '#2196F3',
+                'refunds': '#9C27B0',
+                'general': '#607D8B'
+            };
+            return colors[intent] || '#999';
+        }
+
+        // Helper function to display conversations
+        function updateConversationFeed(conversations) {
+            const feed = document.getElementById('conversationFeedContent');
+
+            // Build HTML for conversations (newest first)
+            let html = '';
+            conversations.slice().reverse().forEach(conv => {
+                const intentColor = getIntentColor(conv.intent);
+                const timestamp = new Date(conv.timestamp).toLocaleTimeString();
+
+                html += `
+                    <div class="conversation-item">
+                        <div class="conversation-message">
+                            👤 "${conv.message}"
+                        </div>
+                        <div class="conversation-response">
+                            🤖 ${conv.response.substring(0, 100)}${conv.response.length > 100 ? '...' : ''}
+                        </div>
+                        <div class="conversation-meta">
+                            <span class="meta-badge" style="background: ${intentColor}; color: white;">
+                                ${conv.intent}
+                            </span>
+                            <span>⭐ ${(conv.confidence * 100).toFixed(0)}% confidence</span>
+                            <span>🕐 ${timestamp}</span>
+                            <span>v${conv.version}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            feed.innerHTML = html || '<div style="text-align: center; color: #999; padding: 20px;">Waiting for conversations...</div>';
+        }
+
+        async function updateAutoSimStatus() {
+            try {
+                const response = await fetch('/api/auto-simulation/status');
+                const data = await response.json();
+
+                if (data.active) {
+                    const currentCount = data.stats.total_simulated;
+                    const optCount = data.stats.total_optimizations;
+
+                    // Update live conversation feed
+                    if (data.recent_conversations && data.recent_conversations.length > 0) {
+                        updateConversationFeed(data.recent_conversations);
+                    }
+
+                    // Update counters with animation
+                    const countElement = document.getElementById('simCount');
+                    if (countElement.textContent !== currentCount.toString()) {
+                        countElement.style.transform = 'scale(1.2)';
+                        countElement.textContent = currentCount;
+                        setTimeout(() => countElement.style.transform = 'scale(1)', 200);
+                    }
+
+                    // Update optimization count
+                    const optElement = document.getElementById('simOptCount');
+                    if (optElement.textContent !== optCount.toString()) {
+                        optElement.style.transform = 'scale(1.3)';
+                        optElement.style.color = '#ff9800';
+                        optElement.textContent = optCount;
+                        setTimeout(() => {
+                            optElement.style.transform = 'scale(1)';
+                            optElement.style.color = '#9c27b0';
+                        }, 500);
+
+                        // Show celebration for new optimization
+                        addLogEntry(`✨ Optimization #${optCount} completed! Version ${optCount + 1}`);
+                        lastOptimizationTime = Date.now();
+                    }
+
+                    // Calculate and show rate
+                    const rate = currentCount - lastInteractionCount;
+                    if (rate > 0) {
+                        document.getElementById('simRate').textContent = `(+${rate}/0.5sec)`;
+                        lastInteractionCount = currentCount;
+                    }
+
+                    // Update elapsed time
+                    if (autoSimStartTime) {
+                        const elapsed = Math.floor((Date.now() - autoSimStartTime) / 1000);
+                        const mins = Math.floor(elapsed / 60);
+                        const secs = elapsed % 60;
+                        document.getElementById('simTimer').textContent =
+                            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    }
+
+                    // Calculate time until next optimization
+                    if (lastOptimizationTime) {
+                        const timeSinceOpt = Math.floor((Date.now() - lastOptimizationTime) / 1000);
+                        const timeToNext = Math.max(0, 10 - timeSinceOpt);
+                        document.getElementById('nextOptTime').textContent = `${timeToNext}s`;
+
+                        // Highlight when optimization is imminent
+                        if (timeToNext <= 2) {
+                            document.getElementById('nextOptTime').style.color = '#f44336';
+                            document.getElementById('nextOptTime').style.fontWeight = 'bold';
+                        } else {
+                            document.getElementById('nextOptTime').style.color = '#ff9800';
+                        }
+                    }
+
+                    // Update analytics dashboard every 2 seconds (not every 500ms)
+                    if (Math.random() < 0.25) {  // 25% chance = roughly every 2 seconds
+                        updateAnalytics();
+                        loadOptimizationHistory();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to get auto-sim status:', error);
+            }
+        }
+
+        // Check if auto-simulation is already running on page load
+        async function initAutoSimulationState() {
+            try {
+                const response = await fetch('/api/auto-simulation/status');
+                const data = await response.json();
+
+                if (data.active) {
+                    // Auto-simulation is running, update UI to reflect that
+                    autoSimActive = true;
+                    autoSimStartTime = Date.now() - 5000; // Approximate start time
+                    lastOptimizationTime = Date.now() - 5000;
+                    lastInteractionCount = data.stats.total_simulated;
+
+                    const btn = document.getElementById('autoSimBtn');
+                    const statusDiv = document.getElementById('autoSimStatus');
+
+                    btn.textContent = '⏸️ Stop Auto-Simulation';
+                    btn.className = 'btn btn-warning btn-block';
+                    statusDiv.style.display = 'block';
+                    document.getElementById('simStatus').textContent = '🟢 Active';
+                    document.getElementById('simStatus').style.color = '#4caf50';
+                    document.getElementById('simCount').textContent = data.stats.total_simulated;
+                    document.getElementById('simOptCount').textContent = data.stats.total_optimizations;
+
+                    // Show live conversation feed
+                    document.getElementById('liveConversationFeed').style.display = 'block';
+
+                    // Start fast polling for real-time updates (every 500ms)
+                    autoSimInterval = setInterval(updateAutoSimStatus, 500);
+
+                    addLogEntry('🔄 Reconnected to active auto-simulation...');
+                }
+            } catch (error) {
+                console.error('Failed to check auto-sim status:', error);
+            }
+        }
+
+        // Initial load
+        updateAnalytics();
+        initAutoSimulationState();
+    </script>
+</body>
+</html>

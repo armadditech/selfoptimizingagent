@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Optimizing Customer Service Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: 90vh;
+        }
+
+        .chat-section {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.agent .message-bubble {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-meta {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .message.user .message-meta {
+            justify-content: flex-end;
+        }
+
+        .intent-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .intent-orders { background: #4CAF50; color: white; }
+        .intent-returns { background: #FF9800; color: white; }
+        .intent-products { background: #2196F3; color: white; }
+        .intent-refunds { background: #9C27B0; color: white; }
+        .intent-general { background: #607D8B; color: white; }
+        .intent-escalation { background: #F44336; color: white; }
+
+        .confidence-bar {
+            display: inline-block;
+            width: 60px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-input button {
+            margin-left: 10px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .chat-input button:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-input button:active {
+            transform: scale(0.95);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .analytics-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .intent-chart {
+            margin-top: 10px;
+        }
+
+        .intent-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .intent-bar-label {
+            width: 80px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .intent-bar-fill {
+            flex: 1;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .intent-bar-progress {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+
+        .intent-bar-count {
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .processing-indicator {
+            display: none;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .processing-indicator.active {
+            display: block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .quick-actions h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .quick-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .quick-button:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+            transform: translateX(5px);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 18px;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .chat-section {
+                height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-section">
+            <div class="header">
+                <h1>🤖 Customer Service Agent</h1>
+                <p>Self-Optimizing AI Assistant - Live Demo</p>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message agent">
+                    <div class="message-bubble">
+                        Hi! I'm here to help you with orders, returns, products, refunds, and any questions you have. How can I assist you today?
+                    </div>
+                </div>
+            </div>
+
+            <div class="processing-indicator" id="processingIndicator">
+                <strong>🔄 Processing:</strong> Classifying intent → Extracting entities → Generating response...
+            </div>
+
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="analytics-card">
+                <h3>📊 Live Analytics</h3>
+                <div class="stat">
+                    <span class="stat-label">Total Interactions</span>
+                    <span class="stat-value" id="totalInteractions">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Avg Confidence</span>
+                    <span class="stat-value" id="avgConfidence">87%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Escalation Rate</span>
+                    <span class="stat-value" id="escalationRate">8%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Satisfaction</span>
+                    <span class="stat-value" id="satisfaction">⭐ 4.6/5.0</span>
+                </div>
+            </div>
+
+            <div class="analytics-card">
+                <h3>📈 Intent Breakdown</h3>
+                <div class="intent-chart" id="intentChart">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>⚡ Quick Tests</h3>
+                <button class="quick-button" onclick="sendQuickMessage('Track my order #12345')">
+                    📦 Track Order
+                </button>
+                <button class="quick-button" onclick="sendQuickMessage('I want to return a product')">
+                    ↩️ Process Return
+                </button>
+                <button class="quick-button" onclick="sendQuickMessage('Do you have wireless headphones?')">
+                    🎧 Search Products
+                </button>
+                <button class="quick-button" onclick="sendQuickMessage('I need a refund')">
+                    💰 Request Refund
+                </button>
+                <button class="quick-button" onclick="sendQuickMessage('What are your hours?')">
+                    ❓ General Question
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage('user', message);
+            input.value = '';
+
+            // Show processing indicator
+            document.getElementById('processingIndicator').classList.add('active');
+
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message agent';
+            typingDiv.id = 'typing';
+            typingDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            document.getElementById('chatMessages').appendChild(typingDiv);
+            scrollToBottom();
+
+            try {
+                // Send to backend
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                // Remove typing indicator
+                document.getElementById('typing')?.remove();
+
+                // Hide processing indicator
+                document.getElementById('processingIndicator').classList.remove('active');
+
+                // Add agent response
+                addMessage('agent', data.response, {
+                    intent: data.intent,
+                    confidence: data.confidence,
+                    entities: data.entities,
+                    response_time: data.response_time
+                });
+
+                // Update analytics
+                updateAnalytics();
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('typing')?.remove();
+                document.getElementById('processingIndicator').classList.remove('active');
+                addMessage('agent', 'Sorry, I encountered an error. Please try again.');
+            }
+        }
+
+        function addMessage(type, text, meta = null) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            let metaHtml = '';
+            if (meta) {
+                const confidencePercent = Math.round(meta.confidence * 100);
+                metaHtml = `
+                    <div class="message-meta">
+                        <span class="intent-badge intent-${meta.intent}">${meta.intent}</span>
+                        <span class="confidence-bar">
+                            <span class="confidence-fill" style="width: ${confidencePercent}%"></span>
+                        </span>
+                        <span>${confidencePercent}%</span>
+                        <span>${meta.response_time.toFixed(2)}s</span>
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-bubble">${text.replace(/\n/g, '<br>')}</div>
+                ${metaHtml}
+            `;
+
+            messagesDiv.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function updateAnalytics() {
+            try {
+                const response = await fetch('/api/analytics');
+                const data = await response.json();
+
+                document.getElementById('totalInteractions').textContent = data.total_interactions;
+                document.getElementById('avgConfidence').textContent = Math.round(data.avg_confidence * 100) + '%';
+                document.getElementById('escalationRate').textContent = Math.round(data.escalation_rate * 100) + '%';
+                document.getElementById('satisfaction').textContent = '⭐ ' + data.satisfaction.toFixed(1) + '/5.0';
+
+                // Update intent chart
+                const intentChart = document.getElementById('intentChart');
+                const intents = data.by_intent;
+                const total = Object.values(intents).reduce((a, b) => a + b, 0);
+
+                const colors = {
+                    orders: '#4CAF50',
+                    returns: '#FF9800',
+                    products: '#2196F3',
+                    refunds: '#9C27B0',
+                    general: '#607D8B'
+                };
+
+                intentChart.innerHTML = '';
+                for (const [intent, count] of Object.entries(intents)) {
+                    const percent = total > 0 ? (count / total * 100) : 0;
+                    intentChart.innerHTML += `
+                        <div class="intent-bar">
+                            <div class="intent-bar-label">${intent}</div>
+                            <div class="intent-bar-fill">
+                                <div class="intent-bar-progress" style="width: ${percent}%; background: ${colors[intent]}"></div>
+                            </div>
+                            <div class="intent-bar-count">${count}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error updating analytics:', error);
+            }
+        }
+
+        // Initial analytics load
+        updateAnalytics();
+    </script>
+</body>
+</html>

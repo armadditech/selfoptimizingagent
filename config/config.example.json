@@ -1,0 +1,241 @@
+{
+  "business": {
+    "name": "Your Company Name",
+    "industry": "retail",
+    "website": "https://example.com",
+    "support_email": "support@example.com",
+    "support_phone": "1-800-123-4567",
+    "support_hours": "24/7",
+    "timezone": "America/New_York",
+    "currency": "USD",
+    "countries": ["US", "CA"]
+  },
+
+  "agent": {
+    "name": "Alex",
+    "personality": "friendly, professional, and helpful",
+    "response_style": "concise but thorough",
+    "tone": "empathetic and solution-oriented",
+    "language": "en",
+    "max_response_tokens": 500,
+    "temperature": 0.7,
+    "escalation_threshold": 3,
+    "confidence_threshold": 0.75
+  },
+
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "api_key": "${ANTHROPIC_API_KEY}",
+    "max_tokens": 4096,
+    "enable_caching": true,
+    "streaming": true,
+    "thinking": {
+      "enabled": true,
+      "type": "enabled"
+    }
+  },
+
+  "capabilities": {
+    "orders": {
+      "enabled": true,
+      "functions": [
+        "track_order",
+        "cancel_order",
+        "modify_order",
+        "order_status",
+        "shipping_info"
+      ],
+      "auto_track": true,
+      "cancellation_window_hours": 24,
+      "modification_allowed": true
+    },
+
+    "returns": {
+      "enabled": true,
+      "functions": [
+        "initiate_return",
+        "check_eligibility",
+        "print_label",
+        "return_status",
+        "exchange_item"
+      ],
+      "return_window_days": 30,
+      "free_return_shipping": true,
+      "exchange_allowed": true,
+      "restocking_fee": 0.0,
+      "conditions": {
+        "unopened": true,
+        "original_packaging": false,
+        "receipt_required": false
+      }
+    },
+
+    "products": {
+      "enabled": true,
+      "functions": [
+        "search_products",
+        "product_details",
+        "compare_products",
+        "check_availability",
+        "recommend_products",
+        "specifications"
+      ],
+      "enable_recommendations": true,
+      "max_recommendations": 3,
+      "personalization": true,
+      "show_inventory": true
+    },
+
+    "refunds": {
+      "enabled": true,
+      "functions": [
+        "process_refund",
+        "refund_status",
+        "refund_amount",
+        "refund_method"
+      ],
+      "auto_approve_threshold": 50.00,
+      "processing_days": 5,
+      "methods": ["original_payment", "store_credit", "gift_card"],
+      "partial_refunds": true,
+      "manager_approval_threshold": 500.00
+    },
+
+    "general": {
+      "enabled": true,
+      "functions": [
+        "company_info",
+        "policies",
+        "faq",
+        "store_locations",
+        "contact_info",
+        "account_help"
+      ],
+      "knowledge_base_path": "data/knowledge_base/",
+      "faq_path": "data/faqs.json",
+      "policy_path": "data/policies.json"
+    }
+  },
+
+  "optimization": {
+    "enabled": true,
+    "learning_rate": 0.01,
+    "min_interactions_for_learning": 50,
+    "ab_testing": {
+      "enabled": true,
+      "min_sample_size": 100,
+      "confidence_level": 0.95,
+      "test_variants": 2
+    },
+    "auto_update_prompts": true,
+    "prompt_update_threshold": 0.15,
+    "review_interval_hours": 24,
+    "feedback_weight": 0.7,
+    "success_metrics": {
+      "resolution_rate": 0.4,
+      "customer_satisfaction": 0.3,
+      "response_time": 0.2,
+      "escalation_rate": 0.1
+    },
+    "rollback_on_regression": true,
+    "min_confidence_for_deployment": 0.8
+  },
+
+  "conversation": {
+    "max_context_messages": 20,
+    "context_window_tokens": 100000,
+    "enable_memory": true,
+    "memory_retention_days": 90,
+    "greeting_message": "Hi! I'm here to help you with orders, returns, products, refunds, and any questions you have. How can I assist you today?",
+    "collect_feedback": true,
+    "ask_for_rating": true
+  },
+
+  "escalation": {
+    "enabled": true,
+    "triggers": {
+      "customer_frustration": true,
+      "repeated_failures": true,
+      "low_confidence": true,
+      "explicit_request": true,
+      "high_value_customer": true,
+      "complex_issue": true
+    },
+    "frustration_keywords": [
+      "frustrated", "angry", "upset", "terrible",
+      "awful", "speak to manager", "human", "person"
+    ],
+    "handoff_message": "I understand this situation needs special attention. Let me connect you with one of our specialist team members who can help you better.",
+    "collect_context": true,
+    "priority_levels": ["low", "medium", "high", "urgent"]
+  },
+
+  "integrations": {
+    "ecommerce": {
+      "enabled": false,
+      "platform": "shopify",
+      "api_endpoint": "https://your-store.myshopify.com/admin/api/2024-01",
+      "api_key": "${SHOPIFY_API_KEY}",
+      "webhook_secret": "${SHOPIFY_WEBHOOK_SECRET}"
+    },
+
+    "crm": {
+      "enabled": false,
+      "platform": "salesforce",
+      "api_endpoint": "https://your-instance.salesforce.com",
+      "client_id": "${SALESFORCE_CLIENT_ID}",
+      "client_secret": "${SALESFORCE_CLIENT_SECRET}"
+    },
+
+    "payment": {
+      "enabled": false,
+      "provider": "stripe",
+      "api_key": "${STRIPE_API_KEY}",
+      "webhook_secret": "${STRIPE_WEBHOOK_SECRET}"
+    },
+
+    "shipping": {
+      "enabled": false,
+      "providers": ["ups", "fedex", "usps"],
+      "tracking_api_keys": {
+        "ups": "${UPS_API_KEY}",
+        "fedex": "${FEDEX_API_KEY}",
+        "usps": "${USPS_API_KEY}"
+      }
+    }
+  },
+
+  "analytics": {
+    "enabled": true,
+    "track_metrics": true,
+    "metrics_retention_days": 365,
+    "export_format": "json",
+    "dashboard_port": 8081,
+    "real_time_updates": true
+  },
+
+  "security": {
+    "verify_customer_identity": true,
+    "pii_handling": "encrypted",
+    "data_retention_days": 90,
+    "audit_logs": true,
+    "rate_limiting": {
+      "enabled": true,
+      "max_requests_per_minute": 60,
+      "max_requests_per_hour": 1000
+    },
+    "sensitive_data_masking": true
+  },
+
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "output": "file",
+    "log_path": "logs/agent.log",
+    "max_file_size_mb": 100,
+    "max_files": 10,
+    "log_conversations": true,
+    "log_optimization_events": true
+  }
+}
