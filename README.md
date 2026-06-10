@@ -233,8 +233,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: Check the `/docs` folder
-- **Issues**: [GitHub Issues](https://github.com/deepak-mukunthu/SelfOptimizingAgent/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/deepak-mukunthu/SelfOptimizingAgent/discussions)
+- **Issues**: [GitHub Issues](https://github.com/armadditech/selfoptimizingagent/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/armadditech/selfoptimizingagent/discussions)
 
 ## ⭐ Star History
 
@@ -253,4 +253,4 @@ Want to see it in action? Check out the [demo video](link-to-demo) or:
 
 ---
 
-**Made with ❤️ and AI** | [Report Bug](https://github.com/deepak-mukunthu/SelfOptimizingAgent/issues) | [Request Feature](https://github.com/deepak-mukunthu/SelfOptimizingAgent/issues)
+**Made with ❤️ and AI** | [Report Bug](https://github.com/armadditech/selfoptimizingagent/issues) | [Request Feature](https://github.com/armadditech/selfoptimizingagent/issues)
